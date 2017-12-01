@@ -1,0 +1,8 @@
+defaults: &defaults
+  host: es
+  transport_options:
+    request:
+      timeout: 5
+
+staging:
+  <<: *defaults

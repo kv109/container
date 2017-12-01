@@ -1,0 +1,81 @@
+version: "3"
+services:
+  delayed_job:
+    image: platform-os
+    env_file:
+      - web/.env
+    environment:
+      - DATABASE_URL=postgres://platform_os:platform_os@postgres:5432/platform_os
+      - ELASTICSEARCH_URL=http://es:9200
+      - RAILS_ENV=development
+      - ROLE=delayed_job
+    links:
+      - es
+      - postgres
+      - redis
+    volumes:
+      - ./web/src:/usr/app
+      - /dev/null:/usr/app/.git # Ignore .git dir
+
+  es:
+    image: elasticsearch:5.5
+    environment:
+      - "ES_JAVA_OPTS=-Des.script.engine.groovy.inline.search=on -Des.script.inline=on -Des.script.indexed=on -Xms512m -Xmx512m"
+      - "discovery.type=single-node"
+    volumes:
+      - es-data:/data
+
+  postgres:
+    image: platform-os-postgres
+    env_file:
+      - postgres/.env
+    environment:
+      PGDATA: /var/lib/postgresql/data/pgdata
+      POSTGRES_PASSWORD: platform_os
+      POSTGRES_USER: platform_os
+      POSTGRES_DB: platform_os
+      WEB_HOST: lvh.me
+    volumes:
+# Uncomment the one you're currently using
+#      - postgres-data-california:/var/lib/postgresql/data
+#      - postgres-data-oregon:/var/lib/postgresql/data
+      - postgres-data-sydney:/var/lib/postgresql/data
+
+  redis:
+    image: redis
+    ports:
+      - "6379:6379"
+
+  web:
+    image: platform-os
+    depends_on:
+      - delayed_job
+    env_file:
+      - web/.env
+    environment:
+      - DATABASE_URL=postgres://platform_os:platform_os@postgres:5432/platform_os
+      - BINDING=lvh.me
+      - ELASTICSEARCH_URL=http://es:9200
+      - RAILS_ENV=development
+    hostname:
+      lvh.me
+    links:
+      - es
+      - postgres
+      - redis
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - ./web/src:/usr/app
+      - /dev/null:/usr/app/.git # Ignore .git dir
+
+volumes:
+  es-data:
+    driver: local
+  postgres-data-california:
+    driver: local
+  postgres-data-sydney:
+    driver: local
+  postgres-data-oregon:
+    driver: local

@@ -1,0 +1,5 @@
+src/.git
+src/.gitmodules
+src/node_modules
+src/log
+src/tmp
