@@ -1,0 +1,3 @@
+[submodule "web/src"]
+	path = web/src
+	url = git@github.com:mdyd-dev/desksnearme.git
